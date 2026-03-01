@@ -17,6 +17,8 @@ Options:
   -q, --quality <quality>   Quality: low, medium, high, auto (default: auto)
   -n, --count <n>           Number of images to generate (default: 1)
   -m, --model <model>       Model: gpt-image-1 (default: gpt-image-1)
+  --install-skill           Install the Claude Code skill to ~/.claude/skills/
+  --uninstall-skill         Remove the Claude Code skill
   -h, --help                Show this help message
 
 Environment:
@@ -26,7 +28,37 @@ Examples:
   image-gen -p "A cat in a spacesuit"
   image-gen -p "Make the background blue" -i photo.png
   image-gen -p "A logo for a coffee shop" -s 1024x1024 -q high -o logo.png
+  npx @fionoble/image-gen-cli --install-skill
 `);
+}
+
+function installSkill() {
+  const os = require("os");
+  const skillDir = path.join(os.homedir(), ".claude", "skills", "image-gen");
+  const source = path.join(__dirname, "skill", "SKILL.md");
+
+  if (!fs.existsSync(source)) {
+    console.error("Error: SKILL.md not found in package. Try reinstalling.");
+    process.exit(1);
+  }
+
+  fs.mkdirSync(skillDir, { recursive: true });
+  fs.copyFileSync(source, path.join(skillDir, "SKILL.md"));
+  console.log(`Claude Code skill installed to ${skillDir}/SKILL.md`);
+}
+
+function uninstallSkill() {
+  const os = require("os");
+  const skillDir = path.join(os.homedir(), ".claude", "skills", "image-gen");
+  const skillFile = path.join(skillDir, "SKILL.md");
+
+  if (fs.existsSync(skillFile)) {
+    fs.unlinkSync(skillFile);
+    fs.rmdirSync(skillDir);
+    console.log("Claude Code skill removed.");
+  } else {
+    console.log("Skill not installed, nothing to remove.");
+  }
 }
 
 function parseArgs(argv) {
@@ -71,6 +103,12 @@ function parseArgs(argv) {
       case "--model":
         args.model = argv[++i];
         break;
+      case "--install-skill":
+        installSkill();
+        process.exit(0);
+      case "--uninstall-skill":
+        uninstallSkill();
+        process.exit(0);
       case "-h":
       case "--help":
         printUsage();
