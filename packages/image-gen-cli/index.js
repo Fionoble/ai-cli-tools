@@ -23,6 +23,7 @@ Options:
 
 Environment:
   OPENAI_API_KEY            Required. Your OpenAI API key.
+  OPENAI_BASE_URL           Optional. Custom API base URL (for proxies).
 
 Examples:
   image-gen -p "A cat in a spacesuit"
@@ -211,7 +212,11 @@ async function main() {
     process.exit(1);
   }
 
-  const client = new OpenAI();
+  const clientOptions = {};
+  if (process.env.OPENAI_BASE_URL) {
+    clientOptions.baseURL = process.env.OPENAI_BASE_URL;
+  }
+  const client = new OpenAI(clientOptions);
 
   try {
     if (args.image) {

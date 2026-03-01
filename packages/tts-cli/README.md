@@ -23,6 +23,27 @@ npx @fionoble/tts-cli -t "Hello world" -o hello.mp3
 export OPENAI_API_KEY="sk-..."
 ```
 
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `OPENAI_API_KEY` | **Required.** Your OpenAI API key. |
+| `OPENAI_BASE_URL` | Custom API base URL (for proxies). |
+| `TTS_VOICE` | Default voice. Overridden by `-v` flag. |
+| `TTS_MODEL` | Default model. Overridden by `-m` flag. |
+| `TTS_FORMAT` | Default output format. Overridden by `--format` flag. |
+| `TTS_SPEED` | Default speed. Overridden by `--speed` flag. |
+
+Example — set your preferred defaults in your shell profile:
+
+```bash
+export TTS_VOICE="nova"
+export TTS_MODEL="tts-1-hd"
+export TTS_FORMAT="wav"
+```
+
+Then just run `tts -t "Hello"` and it uses those defaults. Pass a flag to override for a single run.
+
 ## CLI Usage
 
 ```

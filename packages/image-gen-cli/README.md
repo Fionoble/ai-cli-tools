@@ -23,6 +23,13 @@ npx @fionoble/image-gen-cli -p "A cat in a spacesuit" -o cat.png
 export OPENAI_API_KEY="sk-..."
 ```
 
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `OPENAI_API_KEY` | **Required.** Your OpenAI API key. |
+| `OPENAI_BASE_URL` | Custom API base URL (for proxies). |
+
 ## CLI Usage
 
 ```

@@ -28,6 +28,11 @@ Options:
 
 Environment:
   OPENAI_API_KEY             Required. Your OpenAI API key.
+  OPENAI_BASE_URL            Optional. Custom API base URL (for proxies).
+  TTS_VOICE                  Optional. Default voice (overridden by -v flag).
+  TTS_MODEL                  Optional. Default model (overridden by -m flag).
+  TTS_FORMAT                 Optional. Default format (overridden by --format flag).
+  TTS_SPEED                  Optional. Default speed (overridden by --speed flag).
 
 Examples:
   tts -t "Hello world"
@@ -79,10 +84,10 @@ function parseArgs(argv) {
     text: null,
     file: null,
     output: null,
-    voice: "alloy",
-    model: "gpt-4o-mini-tts",
-    format: "mp3",
-    speed: 1.0,
+    voice: process.env.TTS_VOICE || "alloy",
+    model: process.env.TTS_MODEL || "gpt-4o-mini-tts",
+    format: process.env.TTS_FORMAT || "mp3",
+    speed: process.env.TTS_SPEED ? parseFloat(process.env.TTS_SPEED) : 1.0,
     instructions: null,
   };
 
@@ -195,7 +200,11 @@ async function main() {
     process.exit(1);
   }
 
-  const client = new OpenAI();
+  const clientOptions = {};
+  if (process.env.OPENAI_BASE_URL) {
+    clientOptions.baseURL = process.env.OPENAI_BASE_URL;
+  }
+  const client = new OpenAI(clientOptions);
   const outputPath = resolveOutputPath(args.output, args.format);
 
   console.log(`Generating speech with voice "${args.voice}"...`);
