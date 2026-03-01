@@ -2,31 +2,38 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SKILL_DIR="$HOME/.claude/skills/image-gen"
+SKILLS_DIR="$HOME/.claude/skills"
 
-echo "=== image-gen-cli installer ==="
+echo "=== ai-cli-tools installer ==="
 echo ""
 
-# Install npm dependencies
+# Install pnpm dependencies (workspaces)
 echo "Installing dependencies..."
-npm install --prefix "$SCRIPT_DIR"
+(cd "$SCRIPT_DIR" && pnpm install)
 
-# Link the CLI globally
-echo "Linking CLI globally (may require sudo)..."
-npm link --prefix "$SCRIPT_DIR"
+# Link all CLIs globally
+echo "Linking CLIs globally..."
+(cd "$SCRIPT_DIR/packages/image-gen-cli" && pnpm link --global)
+(cd "$SCRIPT_DIR/packages/tts-cli" && pnpm link --global)
 
-# Install Claude Code skill
-echo "Installing Claude Code skill..."
-mkdir -p "$SKILL_DIR"
-cp "$SCRIPT_DIR/skill/SKILL.md" "$SKILL_DIR/SKILL.md"
+# Install Claude Code skills
+echo "Installing Claude Code skills..."
+
+mkdir -p "$SKILLS_DIR/image-gen"
+cp "$SCRIPT_DIR/packages/image-gen-cli/skill/SKILL.md" "$SKILLS_DIR/image-gen/SKILL.md"
+echo "  Installed image-gen skill"
+
+mkdir -p "$SKILLS_DIR/tts"
+cp "$SCRIPT_DIR/packages/tts-cli/skill/SKILL.md" "$SKILLS_DIR/tts/SKILL.md"
+echo "  Installed tts skill"
 
 echo ""
 echo "Done! Make sure OPENAI_API_KEY is set in your environment:"
 echo ""
 echo "  export OPENAI_API_KEY=\"your-key-here\""
 echo ""
-echo "Then use it directly:"
+echo "Available tools:"
 echo "  image-gen -p \"A cat in space\" -o cat.png"
+echo "  tts -t \"Hello world\" -o hello.mp3"
 echo ""
-echo "Or via Claude Code:"
-echo "  /image-gen generate a cat in space"
+echo "Claude Code skills: /image-gen, /tts"

@@ -1,35 +1,11 @@
 {
-  "name": "@fionoble/image-gen-cli",
-  "version": "1.0.2",
-  "description": "CLI tool for OpenAI image generation and editing, with a Claude Code skill",
-  "main": "index.js",
-  "bin": {
-    "image-gen": "./index.js",
-    "image-gen-cli": "./index.js"
-  },
-  "files": [
-    "index.js",
-    "skill/SKILL.md"
-  ],
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "openai",
-    "image-generation",
-    "gpt-image",
-    "cli",
-    "claude-code",
-    "ai"
-  ],
+  "name": "ai-cli-tools",
+  "private": true,
+  "description": "AI-powered CLI tools with Claude Code skills",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Fionoble/image-gen-cli.git"
+    "url": "https://github.com/Fionoble/ai-cli-tools.git"
   },
   "author": "Fionoble",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "openai": "^6.25.0"
-  }
+  "license": "ISC"
 }

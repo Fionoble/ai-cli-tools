@@ -1,0 +1,37 @@
+{
+  "name": "@fionoble/tts-cli",
+  "version": "1.0.0",
+  "description": "CLI tool for OpenAI text-to-speech, with a Claude Code skill",
+  "main": "index.js",
+  "bin": {
+    "tts": "./index.js",
+    "tts-cli": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "skill/SKILL.md"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "openai",
+    "tts",
+    "text-to-speech",
+    "speech",
+    "cli",
+    "claude-code",
+    "ai"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Fionoble/ai-cli-tools.git",
+    "directory": "packages/tts-cli"
+  },
+  "author": "Fionoble",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "openai": "^6.25.0"
+  }
+}
