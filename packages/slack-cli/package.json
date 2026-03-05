@@ -1,0 +1,37 @@
+{
+  "name": "@fionoble/slack-cli",
+  "version": "1.0.0",
+  "description": "JSON-first CLI for the Slack API, with a Claude Code skill",
+  "type": "module",
+  "bin": {
+    "slack-cli": "./bin/slack-cli"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "tsconfig.json",
+    "skill/SKILL.md"
+  ],
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "slack",
+    "cli",
+    "slack-api",
+    "claude-code",
+    "ai"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Fionoble/ai-cli-tools.git",
+    "directory": "packages/slack-cli"
+  },
+  "author": "Fionoble",
+  "license": "ISC",
+  "dependencies": {
+    "@slack/web-api": "^7",
+    "commander": "^14"
+  }
+}
