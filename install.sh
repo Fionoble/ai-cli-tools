@@ -16,6 +16,14 @@ echo "Linking CLIs globally..."
 (cd "$SCRIPT_DIR/packages/image-gen-cli" && pnpm link --global)
 (cd "$SCRIPT_DIR/packages/tts-cli" && pnpm link --global)
 (cd "$SCRIPT_DIR/packages/slack-cli" && pnpm link --global)
+(cd "$SCRIPT_DIR/packages/issue-watcher" && pnpm link --global)
+
+# Install fcd (shell function)
+echo "Installing fcd..."
+FCD_DIR="$HOME/.local/share/fcd"
+mkdir -p "$FCD_DIR"
+cp "$SCRIPT_DIR/packages/fcd/fcd.sh" "$FCD_DIR/fcd.sh"
+echo "  Installed fcd to $FCD_DIR/fcd.sh"
 
 # Install Claude Code skills
 echo "Installing Claude Code skills..."
@@ -32,6 +40,10 @@ mkdir -p "$SKILLS_DIR/slack"
 cp "$SCRIPT_DIR/packages/slack-cli/skill/SKILL.md" "$SKILLS_DIR/slack/SKILL.md"
 echo "  Installed slack skill"
 
+mkdir -p "$SKILLS_DIR/issue-watcher"
+cp "$SCRIPT_DIR/packages/issue-watcher/skill/SKILL.md" "$SKILLS_DIR/issue-watcher/SKILL.md"
+echo "  Installed issue-watcher skill"
+
 echo ""
 echo "Done!"
 echo ""
@@ -45,5 +57,9 @@ echo "Available tools:"
 echo "  image-gen -p \"A cat in space\" -o cat.png"
 echo "  tts -t \"Hello world\" -o hello.mp3"
 echo "  slack-cli channels list"
+echo "  issue-watcher --init        (start watching for new issues)"
 echo ""
-echo "Claude Code skills: /image-gen, /tts, /slack"
+echo "Claude Code skills: /image-gen, /tts, /slack, /issue-watcher"
+echo ""
+echo "Shell function (add to your .zshrc/.bashrc):"
+echo "  source $HOME/.local/share/fcd/fcd.sh"

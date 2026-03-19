@@ -1,11 +1,11 @@
 {
-  "name": "@fionoble/tts-cli",
-  "version": "1.0.2",
-  "description": "CLI tool for OpenAI text-to-speech, with a Claude Code skill",
+  "name": "@fionoble/issue-watcher",
+  "version": "1.0.0",
+  "description": "GitHub issue watcher that uses Claude to auto-generate PRs for new issues",
   "main": "index.js",
   "bin": {
-    "tts": "./index.js",
-    "tts-cli": "./index.js"
+    "issue-watcher": "./index.js",
+    "issue-watcher-cli": "./index.js"
   },
   "files": [
     "index.js",
@@ -15,10 +15,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "openai",
-    "tts",
-    "text-to-speech",
-    "speech",
+    "github",
+    "issue-watcher",
+    "claude",
+    "automation",
     "cli",
     "claude-code",
     "ai"
@@ -26,12 +26,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Fionoble/ai-cli-tools.git",
-    "directory": "packages/tts-cli"
+    "directory": "packages/issue-watcher"
   },
   "author": "Fionoble",
   "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "openai": "^6.25.0"
-  }
+  "type": "commonjs"
 }

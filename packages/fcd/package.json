@@ -1,0 +1,26 @@
+{
+  "name": "@fionoble/fcd",
+  "version": "1.0.0",
+  "description": "Fuzzy cd — quickly jump into project directories using fzf",
+  "main": "fcd.sh",
+  "files": [
+    "fcd.sh"
+  ],
+  "scripts": {},
+  "keywords": [
+    "fzf",
+    "cd",
+    "fuzzy",
+    "directory",
+    "navigation",
+    "shell",
+    "cli"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Fionoble/ai-cli-tools.git",
+    "directory": "packages/fcd"
+  },
+  "author": "Fionoble",
+  "license": "ISC"
+}
