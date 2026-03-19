@@ -293,12 +293,18 @@ function processIssue(repo, issue, defaultBranch) {
     }
 
     const claudeOutput = (result.stdout || '').trim();
-    log(`  Claude finished`);
+    const claudeStderr = (result.stderr || '').trim();
+    log(`  Claude finished (exit code: ${result.status})`);
+    if (claudeStderr) log(`  Claude stderr: ${claudeStderr.slice(0, 1000)}`);
+    log(`  Claude output: ${claudeOutput.slice(0, 2000)}`);
 
     // Check if any files changed
     const diff = run('git diff --stat', { cwd: worktreeDir, ignoreError: true }) || '';
     const untracked = run('git ls-files --others --exclude-standard', { cwd: worktreeDir, ignoreError: true }) || '';
     const hasChanges = diff.length > 0 || untracked.length > 0;
+
+    log(`  git diff --stat: ${diff || '(empty)'}`);
+    log(`  untracked files: ${untracked || '(none)'}`);
 
     if (!hasChanges) {
       log(`  No code changes were made. Skipping PR.`);
