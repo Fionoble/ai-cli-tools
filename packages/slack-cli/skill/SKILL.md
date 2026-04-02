@@ -27,7 +27,9 @@ On error:
 
 ### Auth
 ```bash
-slack-cli auth setup [token]    # Configure token (positional, --token flag, or stdin)
+slack-cli auth                   # Browser OAuth login (default)
+slack-cli auth login             # Same — browser-based OAuth 2.0
+slack-cli auth setup [token]     # Configure token manually (positional, --token flag, or stdin)
 slack-cli auth test              # Verify token, show identity
 slack-cli auth whoami            # Current user/team identity
 ```
@@ -89,14 +91,23 @@ slack-cli files delete --file <id>
 
 ## Setup
 
-Requires a Slack API token. Configure with:
+Requires a Slack API token. Two ways to authenticate:
+
+**Browser login (recommended):**
+```bash
+slack-cli auth login --client-id <id> --client-secret <secret>
+# Credentials are saved — subsequent logins just need: slack-cli auth
+```
+Requires a Slack app. Set `SLACK_CLIENT_ID` and `SLACK_CLIENT_SECRET` env vars, or pass via flags.
+
+**Manual token setup:**
 ```bash
 slack-cli auth setup <token>
 ```
 
 Token types:
 - `xoxb-` — Bot token
-- `xoxp-` — User token (required for `messages search`)
+- `xoxp-` — User token (required for `messages search`). Browser login produces this type.
 - `xoxc-` — Browser/cookie token (requires `--cookie` or `$SLACK_COOKIE`)
 
 Token is stored at `~/.config/slack-cli/config.json` (mode 0600).

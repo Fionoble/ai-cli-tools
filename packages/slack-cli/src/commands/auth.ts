@@ -3,9 +3,10 @@ import { readConfig, writeConfig, getConfigPath } from "../config.ts";
 import { getClient, resolveToken, resolveCookie } from "../client.ts";
 import { success } from "../output.ts";
 import { BadArgError } from "../errors.ts";
+import { runOAuthFlow } from "../oauth.ts";
 
 export function registerAuthCommand(program: Command): void {
-  const auth = program.command("auth").description("Manage authentication");
+  const auth = program.command("auth").description("Manage authentication (runs 'login' by default)");
 
   auth
     .command("setup")
@@ -83,6 +84,94 @@ export function registerAuthCommand(program: Command): void {
               : "unknown",
       });
     });
+
+  auth
+    .command("login")
+    .description("Authenticate via browser (OAuth 2.0)")
+    .option("--client-id <id>", "Slack app client ID (or $SLACK_CLIENT_ID)")
+    .option("--client-secret <secret>", "Slack app client secret (or $SLACK_CLIENT_SECRET)")
+    .option("--team <team_id>", "Pre-select a workspace")
+    .option("--scopes <scopes>", "Comma-separated OAuth scopes (advanced)")
+    .option("--no-save-app", "Don't persist client_id/client_secret to config")
+    .action(
+      async (opts: {
+        clientId?: string;
+        clientSecret?: string;
+        team?: string;
+        scopes?: string;
+        saveApp: boolean;
+      }) => {
+        const config = readConfig();
+
+        const clientId =
+          opts.clientId ?? process.env.SLACK_CLIENT_ID ?? config.client_id;
+        const clientSecret =
+          opts.clientSecret ?? process.env.SLACK_CLIENT_SECRET ?? config.client_secret;
+
+        if (!clientId || !clientSecret) {
+          throw new BadArgError(
+            "Missing Slack app credentials.\n\n" +
+              "To use browser login you need a Slack app with a redirect URL of http://127.0.0.1:<port>/callback.\n\n" +
+              "Quick setup:\n" +
+              "  1. Visit https://api.slack.com/apps and create (or pick) an app\n" +
+              "  2. Under OAuth & Permissions → Redirect URLs, add: http://127.0.0.1/callback\n" +
+              "     (Slack allows any port on 127.0.0.1 when the host matches)\n" +
+              "  3. Copy the Client ID and Client Secret from Basic Information\n" +
+              "  4. Run:\n" +
+              "       slack-cli auth login --client-id <id> --client-secret <secret>\n" +
+              "     Or set SLACK_CLIENT_ID and SLACK_CLIENT_SECRET env vars.\n" +
+              "\n" +
+              "Credentials are saved to config so you only need to provide them once.",
+          );
+        }
+
+        // Persist app credentials for future logins
+        if (opts.saveApp && (opts.clientId || opts.clientSecret)) {
+          config.client_id = clientId;
+          config.client_secret = clientSecret;
+          writeConfig(config);
+        }
+
+        const result = await runOAuthFlow(clientId, clientSecret, {
+          team: opts.team,
+          scopes: opts.scopes,
+        });
+
+        // Use the user token (authed_user.access_token) for xoxp- scoped operations
+        const token = result.authed_user?.access_token ?? result.access_token;
+        const tokenType = token.startsWith("xoxp-")
+          ? "xoxp (user)"
+          : token.startsWith("xoxb-")
+            ? "xoxb (bot)"
+            : "unknown";
+
+        // Verify the token
+        const client = getClient(token);
+        const authRes = await client.auth.test();
+
+        // Save to config
+        const updated = readConfig();
+        updated.token = token;
+        updated.cookie = undefined; // OAuth tokens don't need cookies
+        updated.team_id = authRes.team_id ?? result.team?.id;
+        updated.team_name = authRes.team ?? result.team?.name;
+        updated.user_id = authRes.user_id ?? result.authed_user?.id;
+        updated.user_name = authRes.user;
+        // Preserve app credentials
+        updated.client_id = clientId;
+        updated.client_secret = clientSecret;
+        writeConfig(updated);
+
+        success({
+          message: "Authenticated via browser",
+          config_path: getConfigPath(),
+          team: updated.team_name,
+          user: updated.user_name,
+          token_type: tokenType,
+          scopes: result.authed_user?.scope ?? result.scope,
+        });
+      },
+    );
 
   auth
     .command("test")

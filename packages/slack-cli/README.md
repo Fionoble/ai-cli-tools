@@ -15,6 +15,29 @@ pnpm install -g @fionoble/slack-cli
 
 ## Setup
 
+### Browser Login (Recommended)
+
+The easiest way to authenticate — opens your browser, you log in to Slack, done:
+
+```bash
+# First time: provide your Slack app credentials (saved for future use)
+slack-cli auth login --client-id <id> --client-secret <secret>
+
+# Subsequent logins: credentials are remembered
+slack-cli auth login
+# or just:
+slack-cli auth
+```
+
+**One-time app setup:**
+1. Visit [api.slack.com/apps](https://api.slack.com/apps) and create (or pick) an app
+2. Under **OAuth & Permissions → Redirect URLs**, add: `http://127.0.0.1/callback`
+3. Copy the **Client ID** and **Client Secret** from **Basic Information**
+
+You can also set `SLACK_CLIENT_ID` and `SLACK_CLIENT_SECRET` environment variables instead of flags.
+
+### Manual Token Setup
+
 ```bash
 slack-cli auth setup xoxb-your-token-here
 ```
@@ -38,6 +61,9 @@ All commands output JSON to stdout.
 
 ```bash
 # Auth
+slack-cli auth                   # Browser OAuth login (default)
+slack-cli auth login             # Same — browser-based OAuth 2.0
+slack-cli auth setup [token]     # Configure token manually
 slack-cli auth test
 slack-cli auth whoami
 

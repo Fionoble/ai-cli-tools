@@ -53,8 +53,21 @@ function applyOverrides(cmd: Command): void {
 }
 applyOverrides(program);
 
+// Default `slack-cli auth` (no subcommand) to `slack-cli auth login`
+const args = process.argv.slice();
+const authIdx = args.indexOf("auth");
+if (authIdx !== -1) {
+  const next = args[authIdx + 1];
+  const authSubs = ["setup", "login", "test", "whoami", "help"];
+  // Only inject "login" if there's no subcommand and no --help/-h
+  const isHelp = next === "--help" || next === "-h";
+  if (!isHelp && (!next || !authSubs.includes(next))) {
+    args.splice(authIdx + 1, 0, "login");
+  }
+}
+
 try {
-  await program.parseAsync(process.argv);
+  await program.parseAsync(args);
 } catch (err: unknown) {
   if (err instanceof CommanderError) {
     // Help and version: commander already wrote output, just exit cleanly
