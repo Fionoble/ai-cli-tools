@@ -1,6 +1,7 @@
 import { WebClient } from "@slack/web-api";
 import { readConfig } from "./config.ts";
 import { NoTokenError, BadArgError, ApiError } from "./errors.ts";
+import { getCachedId, setCachedId, bulkCache } from "./cache.ts";
 
 let _client: WebClient | null = null;
 let _resolvedToken: string | null = null;
@@ -58,6 +59,10 @@ export function getClient(tokenOrFlag?: string, cookie?: string): WebClient {
 
   _client = new WebClient(token, {
     headers,
+    retryConfig: {
+      retries: 3,
+    },
+    rejectRateLimitedCalls: false,
   });
   return _client;
 }
@@ -71,6 +76,11 @@ export async function resolveChannelId(
   if (CHANNEL_ID_RE.test(input)) return input;
 
   const name = input.replace(/^#/, "");
+
+  // Check cache first
+  const cached = getCachedId("channel", name);
+  if (cached) return cached;
+
   let cursor: string | undefined;
   do {
     const res = await client.conversations.list({
@@ -78,6 +88,13 @@ export async function resolveChannelId(
       limit: 200,
       cursor,
     });
+
+    // Bulk-cache all channels from this page
+    const cacheEntries = (res.channels ?? [])
+      .filter((c) => c.name && c.id)
+      .map((c) => ({ key: c.name!, id: c.id! }));
+    bulkCache("channel", cacheEntries);
+
     const ch = res.channels?.find((c) => c.name === name);
     if (ch?.id) return ch.id;
     cursor = res.response_metadata?.next_cursor || undefined;
@@ -95,15 +112,39 @@ export async function resolveUserId(
   if (USER_ID_RE.test(input)) return input;
 
   if (input.includes("@") && input.includes(".")) {
+    // Email lookup — single cheap API call (Tier 4)
+    const cached = getCachedId("user", input);
+    if (cached) return cached;
     const res = await client.users.lookupByEmail({ email: input });
-    if (res.user?.id) return res.user.id;
+    if (res.user?.id) {
+      setCachedId("user", input, res.user.id);
+      // Also cache by handle if available
+      if (res.user.name) setCachedId("user", res.user.name, res.user.id);
+      return res.user.id;
+    }
     throw new BadArgError(`User not found by email: ${input}`);
   }
 
   const handle = input.replace(/^@/, "");
+
+  // Check cache first
+  const cached = getCachedId("user", handle);
+  if (cached) return cached;
+
   let cursor: string | undefined;
   do {
     const res = await client.users.list({ limit: 200, cursor });
+
+    // Bulk-cache all users from this page
+    const cacheEntries: Array<{ key: string; id: string }> = [];
+    for (const m of res.members ?? []) {
+      if (!m.id) continue;
+      if (m.name) cacheEntries.push({ key: m.name, id: m.id });
+      if (m.profile?.display_name) cacheEntries.push({ key: m.profile.display_name, id: m.id });
+      if (m.profile?.email) cacheEntries.push({ key: m.profile.email, id: m.id });
+    }
+    bulkCache("user", cacheEntries);
+
     const user = res.members?.find(
       (m) => m.name === handle || m.profile?.display_name === handle,
     );

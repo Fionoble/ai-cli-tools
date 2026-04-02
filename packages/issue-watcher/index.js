@@ -377,12 +377,17 @@ function cleanup(worktreeDir, branch) {
 function runCycle(repo, state, opts) {
   let issues;
 
-  if (opts.issue) {
-    const issue = fetchIssue(repo.nameWithOwner, opts.issue);
-    issues = [issue];
-  } else {
-    const allIssues = fetchOpenIssues(repo.nameWithOwner, opts.label);
-    issues = allIssues.filter(i => !state.processed[i.number]);
+  try {
+    if (opts.issue) {
+      const issue = fetchIssue(repo.nameWithOwner, opts.issue);
+      issues = [issue];
+    } else {
+      const allIssues = fetchOpenIssues(repo.nameWithOwner, opts.label);
+      issues = allIssues.filter(i => !state.processed[i.number]);
+    }
+  } catch (err) {
+    log(`Error fetching issues: ${err.message}`);
+    return;
   }
 
   if (issues.length === 0) {

@@ -38,6 +38,18 @@ export class ApiError extends CliError {
   }
 }
 
+export class RateLimitError extends CliError {
+  public retryAfter: number;
+  constructor(retryAfter: number, message?: string) {
+    super(
+      message ?? `Rate limited by Slack. Retry after ${retryAfter}s`,
+      EXIT_API_ERROR,
+      "rate_limited",
+    );
+    this.retryAfter = retryAfter;
+  }
+}
+
 export class NetworkError extends CliError {
   constructor(message: string) {
     super(message, EXIT_NETWORK, "network_error");
@@ -55,9 +67,19 @@ export function toCliError(err: unknown): CliError {
 
   if (err && typeof err === "object") {
     const e = err as Record<string, unknown>;
-    // Slack WebClient errors
+    // Slack WebClient rate limit errors
+    if (e.code === "slack_webapi_rate_limited_error") {
+      const retryAfter = typeof e.retryAfter === "number" ? e.retryAfter : 30;
+      return new RateLimitError(retryAfter, String(e.message ?? "Rate limited"));
+    }
+    // Slack WebClient platform errors
     if (e.code === "slack_webapi_platform_error" && typeof e.data === "object") {
       const data = e.data as Record<string, unknown>;
+      if (data.error === "ratelimited") {
+        const retryAfter =
+          typeof data.retry_after === "number" ? data.retry_after : 30;
+        return new RateLimitError(retryAfter);
+      }
       return new ApiError(
         String(data.error ?? "unknown"),
         String(e.message ?? data.error),

@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { getClient, resolveUserId } from "../client.ts";
 import { success } from "../output.ts";
+import { bulkCache } from "../cache.ts";
 
 export function registerUsersCommand(program: Command): void {
   const users = program
@@ -19,7 +20,19 @@ export function registerUsersCommand(program: Command): void {
         cursor: opts.cursor,
       });
 
-      const data = (res.members ?? []).map((m) => ({
+      const members = res.members ?? [];
+
+      // Bulk-cache all returned users for future handle/email resolution
+      const cacheEntries: Array<{ key: string; id: string }> = [];
+      for (const m of members) {
+        if (!m.id) continue;
+        if (m.name) cacheEntries.push({ key: m.name, id: m.id });
+        if (m.profile?.display_name) cacheEntries.push({ key: m.profile.display_name, id: m.id });
+        if (m.profile?.email) cacheEntries.push({ key: m.profile.email, id: m.id });
+      }
+      bulkCache("user", cacheEntries);
+
+      const data = members.map((m) => ({
         id: m.id,
         name: m.name,
         real_name: m.real_name,

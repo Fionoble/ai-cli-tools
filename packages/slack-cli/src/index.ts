@@ -1,6 +1,6 @@
 import { Command, CommanderError } from "commander";
 import { setOutputMode, error as outputError } from "./output.ts";
-import { toCliError, EXIT_BAD_ARG } from "./errors.ts";
+import { toCliError, RateLimitError, EXIT_BAD_ARG } from "./errors.ts";
 import { registerAuthCommand } from "./commands/auth.ts";
 import { registerChannelsCommand } from "./commands/channels.ts";
 import { registerMessagesCommand } from "./commands/messages.ts";
@@ -67,6 +67,7 @@ try {
   }
 
   const cliErr = toCliError(err);
-  outputError(cliErr.slackError ?? "cli_error", cliErr.message, cliErr.exitCode);
+  const retryAfter = cliErr instanceof RateLimitError ? cliErr.retryAfter : undefined;
+  outputError(cliErr.slackError ?? "cli_error", cliErr.message, cliErr.exitCode, retryAfter);
   process.exit(cliErr.exitCode);
 }

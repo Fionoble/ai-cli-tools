@@ -9,6 +9,7 @@ interface ErrorOutput {
   error: string;
   message: string;
   exit_code: number;
+  retry_after?: number;
 }
 
 type Output = SuccessOutput | ErrorOutput;
@@ -48,12 +49,14 @@ export function error(
   slackError: string,
   message: string,
   exitCode: number,
+  retryAfter?: number,
 ): void {
   const out: ErrorOutput = {
     ok: false,
     error: slackError,
     message,
     exit_code: exitCode,
+    ...(retryAfter != null ? { retry_after: retryAfter } : {}),
   };
 
   if (outputMode === "pretty") {

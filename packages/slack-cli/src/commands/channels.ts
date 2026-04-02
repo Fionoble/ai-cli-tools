@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { getClient, resolveChannelId } from "../client.ts";
 import { success } from "../output.ts";
 import { BadArgError } from "../errors.ts";
+import { bulkCache } from "../cache.ts";
 
 export function registerChannelsCommand(program: Command): void {
   const channels = program
@@ -26,7 +27,15 @@ export function registerChannelsCommand(program: Command): void {
         cursor: opts.cursor,
       });
 
-      const data = (res.channels ?? []).map((c) => ({
+      const channels = res.channels ?? [];
+
+      // Bulk-cache all returned channels for future name resolution
+      bulkCache(
+        "channel",
+        channels.filter((c) => c.name && c.id).map((c) => ({ key: c.name!, id: c.id! })),
+      );
+
+      const data = channels.map((c) => ({
         id: c.id,
         name: c.name,
         is_channel: c.is_channel,

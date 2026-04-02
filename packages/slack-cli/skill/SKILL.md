@@ -103,8 +103,10 @@ Token is stored at `~/.config/slack-cli/config.json` (mode 0600).
 
 ## Name Resolution
 
-- **Channels:** Pass a channel ID (e.g., `C01ABC123`) or a name (e.g., `general` or `#general`). Names are resolved automatically.
-- **Users:** Pass a user ID (e.g., `U01ABC123`), a handle (e.g., `@jane.doe`), or an email. Resolved automatically.
+- **Channels:** Pass a channel ID (e.g., `C01ABC123`) or a name (e.g., `general` or `#general`). Names are resolved automatically and cached for 1 hour.
+- **Users:** Pass a user ID (e.g., `U01ABC123`), a handle (e.g., `@jane.doe`), or an email. Resolved automatically and cached.
+- **Prefer IDs:** If you already have an ID from a previous command response, reuse it directly — this avoids any API call for resolution.
+- **Prefer email over handle:** Email lookup is a single cheap API call (Tier 4). Handle lookup may paginate through the full user list (Tier 2, rate-limited). Use email when you have it.
 
 ## Pagination
 
@@ -120,6 +122,21 @@ When the user asks you to interact with Slack:
 4. **Use `dm history`** to review direct message conversations.
 5. **Chain commands**: search first to find relevant timestamps, then read the thread with `messages thread --thread-ts <ts>`.
 6. Pipe `--limit` to control how much data you pull. Start small, expand if needed.
+
+### Rate Limit Best Practices
+
+- **Reuse IDs from previous responses.** Every response includes channel/user IDs — pass those directly instead of names to avoid resolution API calls entirely.
+- **Prefer email for user lookup.** `--user jane@example.com` uses a single Tier 4 call. `--user @jane.doe` may paginate `users.list` (Tier 2, 20 req/min).
+- **Results are cached for 1 hour.** After the first name→ID resolution, subsequent calls with the same name are free (no API call).
+- **The CLI auto-retries on rate limits** (up to 3 times with exponential backoff). If retries are exhausted, the error output includes `retry_after` (seconds) — wait that long before trying again.
+- **If you see `"error": "rate_limited"`**, check the `retry_after` field and wait before retrying:
+  ```json
+  {"ok": false, "error": "rate_limited", "message": "...", "exit_code": 4, "retry_after": 30}
+  ```
+
+## Caching
+
+Channel and user name→ID mappings are cached at `~/.config/slack-cli/cache.json` (1-hour TTL). List commands (`channels list`, `users list`) bulk-populate this cache. The cache is also populated during name resolution, so the first lookup pays the API cost and all subsequent lookups for the same name are instant.
 
 ## Exit Codes
 
